@@ -4,9 +4,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-dataset/
-uploads/
-
 .env
 .DS_Store
 Thumbs.db
