@@ -7,8 +7,6 @@ __pycache__/
 dataset/
 uploads/
 
-models/*.pth
-
 .env
 .DS_Store
 Thumbs.db
