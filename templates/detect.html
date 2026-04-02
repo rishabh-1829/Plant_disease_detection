@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="detect-body">
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <div class="page-shell">
+        <header class="site-header">
+            <nav class="topbar">
+                <a href="/" class="brand-wrap brand-link">
+                    <div class="brand-mark">LL</div>
+                </a>
+                <div class="topbar-actions">
+                    <button type="button" class="icon-btn lang-toggle" data-lang-toggle title="Change language" aria-label="Change language">
+                        <span class="icon-btn-symbol">अ</span>
+                    </button>
+                    <a href="/" class="icon-btn nav-link" title="Landing Page" aria-label="Landing Page">
+                        <span class="icon-btn-symbol">⌂</span>
+                    </a>
+                    <a href="#predict-section" class="icon-btn nav-cta" title="Upload Now" aria-label="Upload Now">
+                        <span class="icon-btn-symbol">⤴</span>
+                    </a>
+                </div>
+            </nav>
+        </header>
+
+        <main>
+            <section id="predict-section" class="panel detect-hero reveal">
+                <div class="section-heading split-heading">
+                    <div>
+                        <p class="eyebrow" data-i18n="detect_workspace_label">Detection Workspace</p>
+                        <h2 data-i18n="detect_title">Upload a potato, rose, or tomato leaf image</h2>
+                    </div>
+                    <p class="section-copy" data-i18n="detect_intro">
+                        Pick a model, upload the image, and read the predicted plant type, disease class, confidence score, and diagnosis status.
+                    </p>
+                </div>
+
+                <div class="supported-strip">
+                    {% for plant in supported_plants %}
+                        <span class="support-chip" data-en="{{ plant_labels[plant]['en'] }}" data-hi="{{ plant_labels[plant]['hi'] }}" data-i18n-attr="text">{{ plant_labels[plant]['en'] }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="predict-grid">
+                    <div class="upload-panel card-surface">
+                        <div class="upload-header">
+                            <div>
+                                <span class="field-label" data-i18n="model_selection">Model Selection</span>
+                                <h3 data-i18n="choose_prediction_model">Choose the prediction model</h3>
+                            </div>
+                            <span class="pill" data-i18n="detection_mode">Detection Mode</span>
+                        </div>
+
+                        <select id="modelSelect" class="model-select">
+                            {% for model_key, model_label in model_options %}
+                                <option value="{{ model_key }}">{{ model_label }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <div id="dropZone" class="drop-zone">
+                            <input type="file" id="fileInput" accept="image/*" hidden>
+                            <div class="drop-zone-content">
+                                <div class="drop-visual">
+                                    <span class="drop-icon">+</span>
+                                </div>
+                                <h3 data-i18n="drop_leaf_image_here">Drop leaf image here</h3>
+                                <p data-i18n="drop_leaf_image_copy">Use a JPG or PNG image from the supported plant list.</p>
+                            </div>
+                        </div>
+
+                        <div class="preview-wrapper">
+                            <div class="preview-frame">
+                                <img id="previewImage" alt="Leaf preview" class="preview-image hidden">
+                                <div id="previewPlaceholder" class="preview-placeholder">
+                                    <span data-i18n="preview_placeholder">Leaf preview appears here</span>
+                                </div>
+                            </div>
+                            <div class="file-meta">
+                                <p id="fileName" class="file-name" data-i18n="no_file_selected">No file selected</p>
+                                <p class="file-hint" data-i18n="file_hint">Supported: JPG, JPEG, PNG</p>
+                            </div>
+                        </div>
+
+                        <button id="predictBtn" class="primary-btn full-width" data-i18n="predict_disease">Predict Disease</button>
+                    </div>
+
+                    <div class="result-panel card-surface">
+                        <div id="loadingState" class="loading-state hidden">
+                            <div class="spinner-shell">
+                                <div class="spinner"></div>
+                            </div>
+                            <h3 data-i18n="analyzing_leaf_image">Analyzing leaf image</h3>
+                            <p data-i18n="analyzing_copy">Running plant recognition, feature extraction, and disease prediction on the uploaded image.</p>
+                        </div>
+
+                        <div id="resultCard" class="result-card hidden">
+                            <div class="result-topline">
+                                <p class="result-label" data-i18n="prediction_result">Prediction Result</p>
+                                <span id="resultBadge" class="result-badge" data-i18n-dynamic="result_badge">Healthy</span>
+                            </div>
+
+                            <div class="result-main-grid">
+                                <div class="result-hero-card">
+                                    <div class="confidence-orb" id="confidenceOrb">
+                                        <div class="confidence-orb-inner">
+                                            <span id="confidenceValue">0%</span>
+                                            <small data-i18n="confidence_label">confidence</small>
+                                        </div>
+                                    </div>
+
+                                    <p id="plantName" class="plant-name" data-i18n-dynamic="plant_name">Tomato Leaf</p>
+                                    <h3 id="resultClass">Healthy</h3>
+                                    <p id="resultSummary" class="result-summary" data-i18n-dynamic="result_summary">Leaf condition looks stable based on the uploaded image.</p>
+                                </div>
+
+                                <div class="result-side-stack">
+                                    <div class="result-metrics">
+                                        <div class="metric-card">
+                                            <span data-i18n="plant_type">Plant Type</span>
+                                            <strong id="resultPlant">Tomato</strong>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span data-i18n="disease_confidence">Disease Confidence</span>
+                                            <strong id="resultConfidence">0%</strong>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span data-i18n="selected_model">Selected Model</span>
+                                            <strong id="resultModel">Custom CNN</strong>
+                                        </div>
+                                        <div class="metric-card">
+                                            <span data-i18n="raw_class_label">Raw Class Label</span>
+                                            <strong id="resultRawClass">Tomato___Healthy</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="care-grid">
+                                <div class="care-card">
+                                    <div class="care-card-head">
+                                        <span class="care-icon">S</span>
+                                        <div>
+                                            <p class="care-label" data-i18n="symptoms_label">Symptoms</p>
+                                            <h4 data-i18n="symptoms_title">Visible Signs</h4>
+                                        </div>
+                                    </div>
+                                    <ul id="symptomsList" class="care-list">
+                                        <li>Leaf color and tissue pattern will appear here after scanning.</li>
+                                    </ul>
+                                </div>
+
+                                <div class="care-card">
+                                    <div class="care-card-head">
+                                        <span class="care-icon">C</span>
+                                        <div>
+                                            <p class="care-label" data-i18n="cure_label">Cure</p>
+                                            <h4 data-i18n="cure_title">Recommended Action</h4>
+                                        </div>
+                                    </div>
+                                    <ul id="cureList" class="care-list">
+                                        <li>Care suggestions will appear here after the disease is identified.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="report-actions">
+                                <button id="printReportBtn" type="button" class="secondary-btn report-btn" data-i18n="print_report">Print Report</button>
+                            </div>
+                        </div>
+
+                        <div id="errorCard" class="error-card hidden">
+                            <h3 data-i18n="prediction_could_not_be_completed">Prediction could not be completed</h3>
+                            <p id="errorMessage" data-i18n-dynamic="error_message">Please upload a valid image.</p>
+                        </div>
+
+                        <div id="resultPlaceholder" class="result-placeholder">
+                            <div class="placeholder-icon">AI</div>
+                            <h3 data-i18n="waiting_for_analysis">Waiting for analysis</h3>
+                            <p data-i18n="waiting_for_analysis_copy">The diagnosis card will appear here with plant name, disease class, confidence score, and model details.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
